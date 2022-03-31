@@ -1,12 +1,5 @@
 #!usr/bin/env bash
 
-# 
-
-asdf_odin_install_failed() {
-    >&2 printf '%s\n' "⛔ $*"
-    exit 1
-}
-
 echoerr() {
   >&2 echo -e "\033[0;31m$1\033[0m"
 }
