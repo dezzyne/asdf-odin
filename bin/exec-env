@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+# Set up environment variables here.
+
+# Odin has no environment variables to set up as of version 0.13.0.
+# This file is not necessary, but it will be included for future use.

@@ -1,0 +1,115 @@
+#!usr/bin/env bash
+
+# Install the source code here.
+
+# Odin 0.7.0 >= Makefile, build.sh, build.bat -> Mac, Linux, and Windows
+#      0.2.0 >= build.sh, build.bat -> Mac, Linux, and Windows
+#      0.2.0 <  build.bat -> Windows
+
+# https://man7.org/linux/man-pages/man1/set.1p.html
+set -o nounset -o pipefail -o errexit
+IFS=$'\t\n'
+
+# curl --fail --silent --show-error \
+# https://api.github.com/repos/odin-lang/Odin/releases/latest
+
+# odin_temp_dir="$HOME/odin/odintemp"
+
+# if [[ -d "$odin_temp_dir" ]]; then
+#     rm -rf $odin_temp_dir
+# fi
+
+# mkdir $odin_temp_dir
+# cd $odin_temp_dir
+
+# curl -L https://github.com/odin-lang/Odin/archive/v0.13.0.tar.gz > v0.13.0.tar.gz
+# tar xvzf v0.13.0.tar.gz
+
+# cd Odin-0.13.0
+# make release
+
+install_odin() {
+    local install_type=$1
+    local version=$2
+    local install_path=$3
+
+    if [[ "$install_type" != "version" ]]; then
+        printf 'Odin plugin does not support building from github references.\n'
+        exit 1
+    fi
+}
+
+asdf_odin_install() {
+    local ASDF_INSTALL_VERSION="0.9.1"
+    local url
+
+    # local ASDF_ODIN_TEMP_DIR="$(mktemp -d -t asdf-yarn-XXXXXXX)"
+    url="https://github.com/odin-lang/Odin/archive/v${ASDF_INSTALL_VERSION}.tar.gz"
+
+    # (
+        cd "${ASDF_ODIN_TEMP_DIRS}"
+    # )
+
+    if [[ "${ASDF_INSTALL_VERSION}" == "0.9.1" ]]; then
+        url="https://github.com/odin-lang/Odin/archive/${ASDF_INSTALL_VERSION}.tar.gz"
+    fi
+
+    curl $url > "v${ASDF_INSTALL_VERSION}.tar.gz"
+
+    tar xvz "v${ASDF_INSTALL_VERSION}.tar.gz" --strip-components=1 --no-same-owner
+
+    rm -f "v${ASDF_INSTALL_VERSION}.tar.gz"
+
+    printf '%s\n' "$url"
+}
+
+test_scope() {
+    local ASDF_INSTALL_VERSION="0.13.0"
+    local url
+
+    asdf_odin_curl_proto() {
+
+        if [[ -d "Odin-${ASDF_INSTALL_VERSION}" ]]; then
+            rm -rf Odin-${ASDF_INSTALL_VERSION}
+        fi
+
+        if [[ -f "Odin-${ASDF_INSTALL_VERSION}.tar.gz" ]]; then
+            rm -rf Odin-${ASDF_INSTALL_VERSION}.tar.gz
+        fi
+
+        # local ASDF_ODIN_TEMP_DIR="$(mktemp -d -t asdf-yarn-XXXXXXX)"
+        url="https://github.com/odin-lang/Odin/archive/v${ASDF_INSTALL_VERSION}.tar.gz"
+
+        # (
+            # cd "${ASDF_ODIN_TEMP_DIRS}"
+        # )
+
+        if [[ "${ASDF_INSTALL_VERSION}" == "0.9.1" ]]; then
+            url="https://github.com/odin-lang/Odin/archive/${ASDF_INSTALL_VERSION}.tar.gz"
+        fi
+
+        curl -LJ $url --output Odin-${ASDF_INSTALL_VERSION}.tar.gz
+
+        printf '%s\n' "$url"
+
+        # tar fvxz "Odin-${ASDF_INSTALL_VERSION}.tar.gz" --strip-components=1 --no-same-owner
+        tar fvxz "Odin-${ASDF_INSTALL_VERSION}.tar.gz" --no-same-owner
+
+        cd "Odin-${ASDF_INSTALL_VERSION}"
+
+        make release
+    }
+
+    asdf_odin_wget_proto() {
+        wget -q "https://github.com/odin-lang/Odin/archive/v${ASDF_INSTALL_VERSION}.tar.gz"
+        printf '%s\n' "$url"
+    }
+
+    asdf_odin_curl_proto
+    # asdf_odin_wget_proto
+}
+
+install_odin "$ASDF_INSTALL_TYPE" "$ASDF_INSTALL_VERSION" "$ASDF_INSTALL_PATH"
+
+# asdf_odin_install
+test_scope

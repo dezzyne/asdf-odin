@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+# Uninstall previously installed source code.
+
+set -o nounset -o pipefail -o errexit
+
+asdf_odin_uninstall() {
+    rm -rf "${ASDF_INSTALL_PATH}"
+}
+
+if [ -z "${ASDF_INSTALL_PATH:-}" ]; then
+    "No installation directory was provided. \
+    Are you running this command via asdf? \
+    Try running 'asdf uninstall odin <version>'"
+    return 1
+else
+    asdf_odin_uninstall $*
+fi

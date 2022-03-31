@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+# This prints all of the release tags under the repository as a nice space
+# separated list for the user.
+
+# Odin 0.7.0 >= Makefile, build.sh, build.bat -> Mac, Linux, and Windows
+#      0.2.0 >= build.sh, build.bat -> Mac, Linux, and Windows
+#      0.2.0 <  build.bat -> Windows
+
+# https://man7.org/linux/man-pages/man1/set.1p.html
+set -o nounset -o pipefail -o errexit
+
+list_all_from_start() {
+  sort_versions() {
+    # Need to figure this out too.
+    # sed 'h; s/[+-]/./g; s/.p\([[:digit:]]\)/.z\1/; s/$/.z/; G; s/\n/ /'
+    # Sort in alphanumeric order, split on all '.' characters, and sort by
+    # the key ('k') flags below. Need to figure out these flags.
+    # https://unix.stackexchange.com/questions/87745/what-does-lc-all-c-do
+    LC_ALL=C sort -t. -k 1,1 -k 2,2n -k 3,3n -k 4,4n -k 5,5n
+    # awk '{ print $2 }'
+  }
+
+  # A list of all Odin releases sorted in alphanumeric order.
+  versions=$(
+    # Fetch all of the Odin lang release tags from it's github repository.
+    git ls-remote --tags https://github.com/odin-lang/Odin.git |
+    # Exclude llvm-windows and llvm-4.0-windows from the list.
+    grep -v 'llvm' |
+    # Do not accept lines that have '{}' in them (but why?), otherwise accept all
+    # other lines, and filter out the github release tag commit hash from all
+    # accepted lines.
+    awk '!/({})/ { print $2 }' |
+    # Filter out the 'refs/tags/' sub-path from the release tags path.
+    sed 's/refs\/tags\///' |
+    # Filter out the 'v' character from only the beginning of the Odin release.
+    # versions.
+    sed 's/^v//' |
+    # Sort all of the versions in alphanumeric order.
+    sort_versions |
+    # Convert sorted list of versions into list of single space separated Odin
+    # release versions.
+    xargs
+  )
+
+  # Output the list of Odin versions.
+  printf '%s\n' "$versions"
+}
+
+list_all_recent() {
+  release_path=https://api.github.com/repos/odin-lang/Odin/tags
+
+  cmd="curl -s"
+
+  if [ -n "${GITHUB_API_TOKEN:-}" ]; then
+    cmd="$cmd -H 'Authorization: token $GITHUB_API_TOKEN'"
+  fi
+
+  cmd="$cmd $release_path"
+  versions=$(
+    # This only gives a json with twenty-nine tags on the repository.
+    eval $cmd |
+    sed -n 's/.*"name": "\([v?0-9\.a-z]*\)",/\1/p' |
+    sed -n '1!G;h;$p' |
+    sed 's/^v//'
+  )
+
+  printf '%s\n' "$versions"
+}
+
+list_all_from_start
+# list_all_recent
